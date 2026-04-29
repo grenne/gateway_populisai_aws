@@ -1,0 +1,12 @@
+# Python / ambientes locais
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+
+# Credenciais e IDE (opcional)
+*.pem
+.idea/
+.vscode/

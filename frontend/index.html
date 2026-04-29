@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="portal-api-base" content="" />
+  <title>POPULIS — Portal Bedrock</title>
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <img
+          class="brand__logo"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSvPgDTACYT5ZVmxgcMz9I-UsMLBnXrB-4T8w&s"
+          alt="POPULIS"
+          width="200"
+          height="auto"
+        />
+        <p class="brand__subtitle">Bedrock · API compatível OpenAI</p>
+      </div>
+
+      <nav class="menu" aria-label="Recursos">
+        <button type="button" class="menu__btn is-active" data-panel="simple">
+          Chat simples
+        </button>
+        <button type="button" class="menu__btn" data-panel="stream">
+          Chat streaming
+        </button>
+        <button type="button" class="menu__btn" data-panel="persona">
+          Personalidade
+        </button>
+      </nav>
+
+      <section class="panel cfg">
+        <h2 class="cfg__title">Configuração</h2>
+        <label class="field">
+          <span>BEDROCK_API_KEY</span>
+          <input id="apiKey" type="password" autocomplete="off" placeholder="Sua chave" />
+        </label>
+        <label class="field">
+          <span>Região AWS</span>
+          <select id="region"></select>
+        </label>
+        <p class="endpoint" id="endpointHint"></p>
+        <div class="row">
+          <button type="button" id="btnModels" class="btn btn--primary">Carregar modelos</button>
+        </div>
+        <p class="msg msg--err" id="modelsErr" hidden></p>
+        <label class="field">
+          <span>Modelo</span>
+          <select id="modelSelect" disabled></select>
+        </label>
+      </section>
+    </aside>
+
+    <main class="main">
+      <section id="panel-simple" class="content-panel is-visible">
+        <header class="panel-head">
+          <h1>Chat simples</h1>
+          <p>Resposta completa de uma vez (sem streaming).</p>
+        </header>
+        <label class="field field--inline">
+          <span>Máximo de tokens (saída)</span>
+          <input id="maxTokSimple" type="number" min="1" max="32000" value="200" step="50" />
+        </label>
+        <label class="field">
+          <span>Sua pergunta</span>
+          <textarea id="taSimple" rows="5" placeholder="Explique em 2 linhas o que é o Amazon Bedrock."></textarea>
+        </label>
+        <button type="button" id="btnSimple" class="btn btn--primary">Enviar pergunta</button>
+        <div id="outSimple" class="out"></div>
+      </section>
+
+      <section id="panel-stream" class="content-panel">
+        <header class="panel-head">
+          <h1>Chat streaming</h1>
+          <p>
+            Histórico persistente e resposta em blocos (chunks). Limite quantas mensagens entram na API.
+          </p>
+        </header>
+        <div class="toolbar">
+          <label class="field field--inline">
+            <span>Máx. tokens</span>
+            <input id="maxTokStream" type="number" min="1" max="32000" value="200" step="50" />
+          </label>
+          <label class="field field--inline">
+            <span>Máx. msgs no contexto</span>
+            <input id="maxCtxMsgs" type="number" min="2" max="200" value="30" step="2" />
+          </label>
+          <button type="button" id="btnClearChat" class="btn btn--ghost">Limpar conversa</button>
+        </div>
+        <p class="caption" id="streamMeta"></p>
+        <p class="msg msg--warn" id="streamWarn" hidden></p>
+        <div id="chatBox" class="chat-box" role="log" aria-live="polite"></div>
+        <form id="chatForm" class="chat-form">
+          <input id="chatInput" type="text" placeholder="Digite sua mensagem…" autocomplete="off" />
+          <button type="submit" class="btn btn--primary">Enviar</button>
+        </form>
+      </section>
+
+      <section id="panel-persona" class="content-panel">
+        <header class="panel-head">
+          <h1>Personalidade</h1>
+          <p>Prompt de sistema e mensagem do usuário — resposta completa ou em chunks.</p>
+        </header>
+        <label class="field field--inline">
+          <span>Máximo de tokens</span>
+          <input id="maxTokPersona" type="number" min="1" max="32000" value="200" step="50" />
+        </label>
+        <div class="modes">
+          <span class="modes__label">Modo</span>
+          <label><input type="radio" name="personaMode" value="complete" checked /> Resposta completa</label>
+          <label><input type="radio" name="personaMode" value="stream" /> Streaming (chunks)</label>
+        </div>
+        <label class="field">
+          <span>Prompt de sistema</span>
+          <textarea id="taSystem" rows="5">Você é um assistente prestativo. Responda de forma clara e objetiva em português.</textarea>
+        </label>
+        <label class="field">
+          <span>Mensagem do usuário</span>
+          <textarea id="taUserPersona" rows="4" placeholder="Olá, como você pode me ajudar hoje?"></textarea>
+        </label>
+        <button type="button" id="btnPersona" class="btn btn--primary">Enviar com personalidade</button>
+        <div id="outPersona" class="out"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

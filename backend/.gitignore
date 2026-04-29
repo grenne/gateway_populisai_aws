@@ -1,0 +1,6 @@
+# Artefatos de build (não versionar)
+package/
+function.zip
+_venv_pack/
+__pycache__/
+*.pyc
