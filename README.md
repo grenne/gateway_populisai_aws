@@ -1,56 +1,56 @@
-# POPULIS AI — Demo de integração Amazon Bedrock (`portal/`)
+# POPULIS AI — Demo de integração Amazon Bedrock
 
-![Interface do portal — Chat simples com Bedrock (API compatível OpenAI)](portal.png)
+> Demo técnica do portal `portal/`: cada cliente usa **sua própria conta AWS** e uma **BEDROCK_API_KEY** gerada por ele. A plataforma consome a API compatível OpenAI do Bedrock (`bedrock-mantle.<região>.api.aws/v1`) **sem intermediar tokens** nem cobrar LLM por uso.
 
-Demonstração técnica do **contexto de integração**: cada cliente usa **sua própria conta AWS** e uma **BEDROCK_API_KEY** gerada por ele; a plataforma apenas **consome a API compatível OpenAI do Bedrock** (`bedrock-mantle.<região>.api.aws/v1`), **sem intermediar tokens** nem cobrar LLM por uso.
+![Interface do portal — Chat simples com Bedrock](portal.png)
+
+---
+
+## Índice
+
+- [Como funciona](#como-funciona)
+- [Pré-requisitos](#pré-requisitos)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Deploy rápido](#deploy-rápido)
+- [Modelo de custos](#modelo-de-custos)
+- [Escopo da POC](#escopo-da-poc)
+- [Segurança](#segurança)
 
 ---
 
 ## Como funciona
 
-Cada cliente obtém no **AWS Console → Bedrock → API keys → Long-term API keys** uma chave de longa duração, informa **região** (onde os modelos estão habilitados) e usa esta demo para **listar modelos** e **conversar** (chat simples, histórico com chunks, personalidade). O consumo de tokens é **faturado pela AWS na conta do cliente**.
+O modelo é **BYO (Bring Your Own) chave + região**:
+
+1. O cliente gera uma **Long-term API key** no AWS Console → Bedrock → API keys.
+2. Informa a **BEDROCK_API_KEY** e a **região** (onde os modelos estão habilitados) na interface.
+3. As chamadas vão **direto ao Bedrock** na conta do cliente — via Lambda + front estático neste repositório.
+4. A **AWS cobra os tokens** na conta do cliente (visível no Cost Explorer / budgets).
+
+O portal permite **listar modelos disponíveis** e **conversar** (chat com histórico, streaming por chunks e personalidade configurável).
 
 ---
 
-## Fluxo de uso
+## Pré-requisitos
 
-1. Console AWS → Bedrock → API keys → gerar chave de longo prazo.  
-2. Informar **BEDROCK_API_KEY** e **região** na interface desta demo.  
-3. Chamadas vão **direto ao Bedrock** na conta do cliente (neste repositório: via **Lambda** + front estático).  
-4. **AWS cobra tokens** na conta do cliente (Cost Explorer / budget).
-
----
-
-## Quem paga o quê
-
-| Quem | O quê |
-|------|--------|
-| **Cliente** | Uso de IA (Bedrock), direto na conta AWS dele |
-| **Populis AI** | Plataforma / produto (fora do escopo de custo de tokens neste modelo) |
-
-**Vantagens do modelo:** custo de modelo **visível e na conta do cliente**; controle de gasto e limites AWS próprios; isolamento por conta.
+- Conta AWS com **Amazon Bedrock habilitado** na região desejada.
+- **Long-term API key** gerada em: AWS Console → Bedrock → API keys → Long-term API keys.
+- Python 3.10+ e `pip` instalados localmente.
+- Docker (recomendado para build do ZIP compatível com Lambda/Linux).
 
 ---
 
-## Escopo desta POC (este repositório)
+## Estrutura do projeto
 
-- Orientação ao modelo **BYO chave + região**.  
-- Demo web (**front** estático + **API** Lambda) reproduzindo fluxos de uso com Bedrock.  
-- **Fora do escopo da POC:** *feature* na plataforma Populis AI com cadastro **persistente**, criptografia, validação formal, status da integração e tutorial embutido na produção — isso exige **Change Request** apartada (prazo/custo próprios).  
-- Na POC, configuração da chave pode ser **manual**, com apoio ao cliente no console Bedrock (treinamento/orientação), alinhado ao texto de entregáveis da POC.
+```
+portal/
+├── frontend/        # UI POPULIS: região, chave, seleção de modelos, chat
+├── backend/         # Lambda — POST /api/models  |  POST /api/completion
+├── deploy_aws.py    # Empacota e publica Lambda + Function URL + bucket S3
+└── scripts/         # Auxiliares: ZIP e s3 sync
+```
 
----
-
-## Conteúdo do diretório `portal/`
-
-| Item | Descrição |
-|------|-----------|
-| `frontend/` | UI POPULIS: região, chave, modelos, chat. |
-| `backend/` | Lambda — `POST /api/models`, `POST /api/completion`. |
-| `deploy_aws.py` | Opcional: empacota, publica Lambda + URL + bucket S3. |
-| `scripts/` | Auxiliares ZIP e `s3 sync`. |
-
-Arquitetura nuvem (Lambda, S3, CloudFront): **`../docs/DEPLOY_LAMBDA_CLOUDFRONT.md`**.
+Arquitetura de nuvem (Lambda, S3, CloudFront): [`../docs/DEPLOY_LAMBDA_CLOUDFRONT.md`](../docs/DEPLOY_LAMBDA_CLOUDFRONT.md).
 
 ---
 
@@ -62,10 +62,51 @@ pip install -r requirements-deploy.txt
 python deploy_aws.py --region us-east-1 --use-docker --public-website --write-local-config
 ```
 
-`--use-docker` recomendado para ZIP compatível com Lambda (Linux). `--skip-s3` atualiza só a Lambda. Ver `python deploy_aws.py --help`.
+| Flag | Descrição |
+|------|-----------|
+| `--use-docker` | Gera ZIP compatível com Lambda (Linux) — **recomendado** |
+| `--skip-s3` | Atualiza apenas a Lambda, sem tocar no S3 |
+| `--public-website` | Configura bucket S3 como site estático público |
+| `--write-local-config` | Salva configuração gerada localmente |
+
+```bash
+python deploy_aws.py --help   # lista todas as opções
+```
+
+---
+
+## Modelo de custos
+
+| Quem | O quê |
+|------|--------|
+| **Cliente** | Tokens de IA (Bedrock), faturados diretamente na conta AWS dele |
+| **Populis AI** | Plataforma / produto (custo de tokens fora do escopo deste modelo) |
+
+**Vantagens:** custo de modelo visível e controlado pelo cliente; limites e budgets AWS próprios; isolamento total por conta.
+
+---
+
+## Escopo da POC
+
+✅ **Incluso nesta POC:**
+- Modelo BYO chave + região.
+- Demo web (front estático + API Lambda) com os fluxos principais do Bedrock.
+- Apoio ao cliente na geração da chave no console (treinamento/orientação).
+
+❌ **Fora do escopo da POC:**
+- Cadastro persistente de chaves na plataforma Populis AI.
+- Criptografia e validação formal de credenciais.
+- Status de integração e tutorial embutido em produção.
+
+> Itens fora do escopo exigem **Change Request** apartada com prazo e custo próprios.
 
 ---
 
 ## Segurança
 
-Chave **Long-term** é credencial sensível: expiração no console AWS, rotação e **não** compartilhar fora do canal acordado com a Populis AI.
+A **Long-term API key** é uma credencial sensível. Boas práticas:
+
+- **Não compartilhe** a chave fora do canal acordado com a Populis AI.
+- Configure **expiração** da chave diretamente no console AWS.
+- Faça **rotação periódica** da chave (AWS Console → Bedrock → API keys).
+- Use **AWS Budgets** para limitar gastos inesperados na conta.
