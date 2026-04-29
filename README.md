@@ -1,5 +1,7 @@
 # POPULIS AI — Demo de integração Amazon Bedrock (`portal/`)
 
+![Interface do portal — Chat simples com Bedrock (API compatível OpenAI)](portal.png)
+
 Demonstração técnica do **contexto de integração**: cada cliente usa **sua própria conta AWS** e uma **BEDROCK_API_KEY** gerada por ele; a plataforma apenas **consome a API compatível OpenAI do Bedrock** (`bedrock-mantle.<região>.api.aws/v1`), **sem intermediar tokens** nem cobrar LLM por uso.
 
 ---
