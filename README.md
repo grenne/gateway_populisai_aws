@@ -1,8 +1,8 @@
-# POPULIS AI — Demo de integração Amazon Bedrock
+# POPULIS AI: Demo de integração Amazon Bedrock
 
-> Demo técnica do diretório `portal/`: cada cliente usa **sua própria conta AWS** e uma **BEDROCK_API_KEY** gerada por ele. A plataforma consome a API compatível OpenAI do Bedrock (`bedrock-mantle.<região>.api.aws/v1`) **sem intermediar tokens** nem cobrar LLM por uso.
+> Demonstração técnica no modelo **BYO (Bring Your Own)**: cada cliente usa **sua conta AWS** e uma **BEDROCK_API_KEY** que ele mesmo gera no console Bedrock. A aplicação consome o endpoint compatível com OpenAI (`bedrock-mantle.<região>.api.aws/v1`). **Não há intermediação de tokens pela Populis AI** nem **cobrança de modelo pela plataforma** neste fluxo.
 
-![Interface do portal — Chat simples com Bedrock](portal.png)
+![Interface do portal: chat simples com Bedrock](portal.png)
 
 ---
 
@@ -47,8 +47,8 @@ O portal oferece **listagem de modelos**, **chat simples** (bolhas, uma resposta
 
 ```
 portal/
-├── frontend/           # UI estática (HTML/CSS/JS) — chat e configuração
-├── backend/             # Lambda — POST /api/models | POST /api/completion
+├── frontend/           # UI estática (HTML/CSS/JS): chat e configuração
+├── backend/             # Lambda: POST /api/models | POST /api/completion
 ├── deploy_aws.py        # Empacota Lambda, Function URL e opcionalmente S3 público
 ├── deploy.py            # Publica frontend em S3 privado + CloudFront (OAC)
 ├── requirements-deploy.txt
@@ -69,7 +69,7 @@ python deploy_aws.py --region us-east-1 --use-docker --public-website --write-lo
 
 | Flag | Descrição |
 |------|-----------|
-| `--use-docker` | Gera `function.zip` compatível com Lambda (Linux) — **recomendado** |
+| `--use-docker` | Gera `function.zip` compatível com Lambda (Linux). **Recomendado.** |
 | `--skip-s3` | Atualiza só a Lambda |
 | `--skip-lambda` | Só frontend/bucket (sem Lambda) |
 | `--public-website` | Bucket S3 como site HTTP público (alternativa ao fluxo CloudFront) |
