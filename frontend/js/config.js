@@ -1,7 +1,5 @@
 /**
- * URL base da API (Lambda Function URL ou API Gateway), **sem** barra final.
- * Ex.: https://xxxxxxxx.lambda-url.us-east-1.on.aws
- *
- * Deixe vazio para usar caminhos relativos `/api/...` (mesmo domínio atrás do CloudFront).
+ * URL base da API (Lambda Function URL). No deploy CloudFront, use ``deploy.py --api-url`` para injetar.
+ * Vazio = caminhos relativos `/api/...` no mesmo domínio (reverse proxy).
  */
-window.PORTAL_API_BASE = "https://cek33z7vgmiauj5iqbunedk5h40ccsmd.lambda-url.us-east-1.on.aws";
+window.PORTAL_API_BASE = "";

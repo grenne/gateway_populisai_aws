@@ -10,3 +10,7 @@ venv/
 *.pem
 .idea/
 .vscode/
+
+# Artefatos locais do deploy CloudFront (ids/specíficos da conta)
+.oac-config.json
+.cloudfront-config.json

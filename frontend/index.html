@@ -59,25 +59,34 @@
       <section id="panel-simple" class="content-panel is-visible">
         <header class="panel-head">
           <h1>Chat simples</h1>
-          <p>Resposta completa de uma vez (sem streaming).</p>
+          <p>Conversa em bolhas — uma resposta completa por mensagem. <kbd>Enter</kbd> envia; <kbd>Shift</kbd>+<kbd>Enter</kbd> quebra linha.</p>
         </header>
-        <label class="field field--inline">
-          <span>Máximo de tokens (saída)</span>
-          <input id="maxTokSimple" type="number" min="1" max="32000" value="200" step="50" />
-        </label>
-        <label class="field">
-          <span>Sua pergunta</span>
-          <textarea id="taSimple" rows="5" placeholder="Explique em 2 linhas o que é o Amazon Bedrock."></textarea>
-        </label>
-        <button type="button" id="btnSimple" class="btn btn--primary">Enviar pergunta</button>
-        <div id="outSimple" class="out"></div>
+        <div class="toolbar toolbar--chat">
+          <label class="field field--inline">
+            <span>Máx. tokens (saída)</span>
+            <input id="maxTokSimple" type="number" min="1" max="32000" value="200" step="50" />
+          </label>
+        </div>
+        <div class="chat-shell">
+          <div id="simpleChatThread" class="chat-thread" role="log" aria-live="polite" aria-relevant="additions"></div>
+          <div class="composer">
+            <textarea
+              id="taSimple"
+              rows="2"
+              placeholder="Digite sua mensagem…"
+              autocomplete="off"
+            ></textarea>
+            <button type="button" id="btnSimple" class="btn btn--primary btn--send">Enviar</button>
+          </div>
+          <p class="chat-footnote" id="simpleMeta" aria-live="polite"></p>
+        </div>
       </section>
 
       <section id="panel-stream" class="content-panel">
         <header class="panel-head">
           <h1>Chat streaming</h1>
           <p>
-            Histórico persistente e resposta em blocos (chunks). Limite quantas mensagens entram na API.
+            Histórico em tempo real com chunks agregados. Ajuste contexto e tokens; <kbd>Enter</kbd> envia no campo abaixo.
           </p>
         </header>
         <div class="toolbar">
@@ -93,11 +102,13 @@
         </div>
         <p class="caption" id="streamMeta"></p>
         <p class="msg msg--warn" id="streamWarn" hidden></p>
-        <div id="chatBox" class="chat-box" role="log" aria-live="polite"></div>
-        <form id="chatForm" class="chat-form">
-          <input id="chatInput" type="text" placeholder="Digite sua mensagem…" autocomplete="off" />
-          <button type="submit" class="btn btn--primary">Enviar</button>
-        </form>
+        <div class="chat-shell chat-shell--stream">
+          <div id="chatBox" class="chat-thread chat-thread--boxed" role="log" aria-live="polite"></div>
+          <form id="chatForm" class="composer composer--form" autocomplete="off">
+            <textarea id="chatInput" rows="2" placeholder="Mensagem… (Enter envia)" autocomplete="off"></textarea>
+            <button type="submit" class="btn btn--primary btn--send">Enviar</button>
+          </form>
+        </div>
       </section>
 
       <section id="panel-persona" class="content-panel">

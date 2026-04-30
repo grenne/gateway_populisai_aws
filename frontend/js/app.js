@@ -67,6 +67,41 @@
     return msgs.reduce((a, m) => a + String(m.content || "").length, 0);
   }
 
+  function bubbleRow(role, content) {
+    const row = document.createElement("div");
+    row.className =
+      "bubble-row bubble-row--" + (role === "user" ? "user" : "assistant");
+    const roleEl = document.createElement("span");
+    roleEl.className = "bubble__role";
+    roleEl.textContent = role === "user" ? "Você" : "Assistente";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble bubble--" + (role === "user" ? "user" : "assistant");
+    const pre = document.createElement("pre");
+    pre.textContent = content;
+    bubble.appendChild(pre);
+    row.appendChild(roleEl);
+    row.appendChild(bubble);
+    return row;
+  }
+
+  function typingIndicatorEl() {
+    const row = document.createElement("div");
+    row.className = "bubble-row bubble-row--assistant typing-row";
+    row.setAttribute("aria-busy", "true");
+    const roleEl = document.createElement("span");
+    roleEl.className = "bubble__role";
+    roleEl.textContent = "Assistente";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble bubble--assistant";
+    const dots = document.createElement("div");
+    dots.className = "typing-dots";
+    dots.innerHTML = "<span></span><span></span><span></span>";
+    bubble.appendChild(dots);
+    row.appendChild(roleEl);
+    row.appendChild(bubble);
+    return row;
+  }
+
   // --- DOM ---
   const regionEl = document.getElementById("region");
   const endpointHint = document.getElementById("endpointHint");
@@ -156,23 +191,62 @@
     };
   }
 
-  // --- Chat simples ---
-  document.getElementById("btnSimple").addEventListener("click", async () => {
-    const out = document.getElementById("outSimple");
+  // --- Chat simples (thread em bolhas) ---
+  const simpleThread = document.getElementById("simpleChatThread");
+  const simpleMeta = document.getElementById("simpleMeta");
+  const taSimple = document.getElementById("taSimple");
+  const btnSimple = document.getElementById("btnSimple");
+  let simpleMessages = [];
+
+  function renderSimpleChat() {
+    simpleThread.innerHTML = "";
+    simpleMessages.forEach((m) => {
+      simpleThread.appendChild(bubbleRow(m.role, m.content));
+    });
+    simpleThread.scrollTop = simpleThread.scrollHeight;
+  }
+
+  function focusComposer(el) {
+    requestAnimationFrame(() => el.focus());
+  }
+
+  taSimple.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      btnSimple.click();
+    }
+  });
+
+  btnSimple.addEventListener("click", async () => {
     const c = cfg();
+    simpleMeta.textContent = "";
+    const q = taSimple.value.trim();
+    if (!q) {
+      simpleMeta.textContent = "Digite uma mensagem.";
+      return;
+    }
     if (!c.api_key) {
-      out.textContent = "Informe a BEDROCK_API_KEY.";
+      simpleMeta.textContent = "Informe a BEDROCK_API_KEY na barra lateral.";
       return;
     }
     if (!c.model_id) {
-      out.textContent = "Carregue os modelos e selecione um modelo.";
+      simpleMeta.textContent = "Carregue os modelos e escolha um modelo.";
       return;
     }
-    const q =
-      document.getElementById("taSimple").value.trim() ||
-      "Explique em 2 linhas o que é o Amazon Bedrock.";
+
     const max_tokens = parseInt(document.getElementById("maxTokSimple").value, 10) || 200;
-    out.textContent = "Gerando…";
+
+    simpleMessages.push({ role: "user", content: q });
+    taSimple.value = "";
+    renderSimpleChat();
+
+    const typing = typingIndicatorEl();
+    simpleThread.appendChild(typing);
+    simpleThread.scrollTop = simpleThread.scrollHeight;
+
+    btnSimple.disabled = true;
+    taSimple.disabled = true;
+
     try {
       const data = await apiPost("/api/completion", {
         ...c,
@@ -180,21 +254,35 @@
         max_tokens,
         stream_collect: false,
       });
+      typing.remove();
       let text = data.content || "";
+      simpleMessages.push({ role: "assistant", content: text || "(Resposta vazia)" });
+      renderSimpleChat();
       if (data.usage) {
-        text +=
-          "\n\n— Tokens: entrada " +
+        simpleMeta.textContent =
+          "Tokens — entrada " +
           data.usage.prompt_tokens +
           ", saída " +
           data.usage.completion_tokens +
           ", total " +
           data.usage.total_tokens;
       }
-      out.textContent = text;
     } catch (e) {
-      out.textContent = "Erro: " + e.message;
+      typing.remove();
+      simpleMessages.push({
+        role: "assistant",
+        content: "[Erro] " + (e.message || String(e)),
+      });
+      renderSimpleChat();
+      simpleMeta.textContent = "";
+    } finally {
+      btnSimple.disabled = false;
+      taSimple.disabled = false;
+      focusComposer(taSimple);
     }
   });
+
+  renderSimpleChat();
 
   // --- Chat streaming (histórico) ---
   let chatMessages = [];
@@ -208,16 +296,11 @@
   function renderChat() {
     chatBox.innerHTML = "";
     chatMessages.forEach((m) => {
-      const div = document.createElement("div");
-      div.className = "chat-msg chat-msg--" + (m.role === "user" ? "user" : "assistant");
-      const pre = document.createElement("pre");
-      pre.textContent = m.content;
-      div.appendChild(pre);
-      chatBox.appendChild(div);
+      chatBox.appendChild(bubbleRow(m.role, m.content));
     });
     chatBox.scrollTop = chatBox.scrollHeight;
     streamMeta.textContent =
-      "Mensagens na tela (histórico completo): " + chatMessages.length;
+      "Mensagens na conversa: " + chatMessages.length + " — role até API: conforme limite abaixo.";
   }
 
   document.getElementById("btnClearChat").addEventListener("click", () => {
@@ -226,8 +309,16 @@
     streamWarn.hidden = true;
   });
 
+  chatInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      chatForm.requestSubmit();
+    }
+  });
+
   chatForm.addEventListener("submit", async (ev) => {
     ev.preventDefault();
+    const submitBtn = chatForm.querySelector('button[type="submit"]');
     const c = cfg();
     const text = chatInput.value.trim();
     if (!text) return;
@@ -239,6 +330,7 @@
         content: "Informe a BEDROCK_API_KEY na configuração ao lado.",
       });
       renderChat();
+      focusComposer(chatInput);
       return;
     }
     if (!c.model_id) {
@@ -247,6 +339,7 @@
         content: "Carregue os modelos e selecione um modelo.",
       });
       renderChat();
+      focusComposer(chatInput);
       return;
     }
 
@@ -274,6 +367,12 @@
       streamWarn.hidden = false;
     }
 
+    const typing = typingIndicatorEl();
+    chatBox.appendChild(typing);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    chatInput.disabled = true;
+    if (submitBtn) submitBtn.disabled = true;
+
     try {
       const data = await apiPost("/api/completion", {
         ...c,
@@ -281,15 +380,20 @@
         max_tokens,
         stream_collect: true,
       });
+      typing.remove();
       const full =
         data.content ||
         (Array.isArray(data.chunks) ? data.chunks.join("") : "") ||
         "(Resposta vazia)";
       chatMessages.push({ role: "assistant", content: full });
     } catch (e) {
+      typing.remove();
       chatMessages.push({ role: "assistant", content: "[Erro] " + e.message });
     }
     renderChat();
+    chatInput.disabled = false;
+    if (submitBtn) submitBtn.disabled = false;
+    focusComposer(chatInput);
   });
 
   renderChat();
