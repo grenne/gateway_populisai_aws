@@ -4,6 +4,8 @@
 
 ![Interface do portal: chat simples com Bedrock](portal.png)
 
+**Aplicação publicada (CloudFront):** [https://d2exzq8zrhio6d.cloudfront.net/](https://d2exzq8zrhio6d.cloudfront.net/)
+
 ---
 
 ## Índice
