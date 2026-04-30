@@ -156,5 +156,8 @@ A **Long-term API key** é credencial sensível:
 
 - **Não compartilhe** fora do canal acordado com a Populis AI.
 - Configure **expiração** e **rotação** no console AWS (Bedrock → API keys).
-- Use **AWS Budgets** para alertas de gasto.
-- Bucket com frontend via CloudFront permanece **privado** para acesso direto ao S3; o tráfego público é HTTPS pelo CloudFront.
+- **AWS Budgets / alertas de gasto:** no modelo **BYO**, a fatura do Bedrock cai na **conta AWS do cliente**. Orçamentos e alertas (**Billing**, Cost Management, SNS etc.) devem ser criados **nessa conta** por quem tem permissão de billing. A Populis AI não configura isso por padrão; apoio só com acordo ou acesso que o cliente conceder.
+
+Infra deste demo:
+
+- Bucket do frontend atrás do CloudFront fica **sem acesso público direto ao S3**; o usuário acessa o site por **HTTPS** na distribuição.
